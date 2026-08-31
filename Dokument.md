@@ -115,6 +115,16 @@ table inet filter {
 }
 ```
 
+En résumé, seuls les flux utiles sont autorisés et les ports et protocoles sont spécifiés. Voici un tableau qui résume les possibilités actuelles : 
+
+| Funktion | Protokoll / Port | Quelle | Ziel | Zweck |
+|---|---|---|---|---|
+| SSH / Ansible | TCP / 22 | Infrastrukturserver | Testserver | Administration und Automatisierung |
+| ICMP | ICMP | Infrastrukturserver | Testserver / Switch / PDU | Verfügbarkeitsprüfung |
+| SNMP | UDP / 161 | Infrastrukturserver | Switch / PDU | Monitoring von Netzwerkgeräten |
+| Logs / Fehlermeldungen | TCP / 5000 | Testserver | Infrastrukturserver | Übertragung von Logs und Fehlern |
+| Administration | TCP / 22 | Admin-PC | Netzwerkgeräte | Manuelle Konfiguration und Wartung |
+| Standardregel | Alle | Alle | Alle | Standardmässig blockiert |
 
 
 
