@@ -1,4 +1,4 @@
-# Mise en place d'une infrastructure de teste
+    # Mise en place d'une infrastructure de teste
 
 ## Einleitung 
 
@@ -178,9 +178,92 @@ In einer ersten Implementierungsphase wird SSH für die Administration und Autom
 
 ## Prototypes d'automatisations de l'infrastructure
 
+Pour la première phase qui consiste à la surveillance réseau et l'envoi de logs, voici un exemple concret de Playbook pour l'envoi de logs au serveur Infra.
 
 
+Ici, le script python qui doit tourner sur le serveur test : 
 
+```nft
+import socket
+from pathlib import Path
+
+INFRA_SERVER = "192.168.10.20"
+INFRA_PORT = 5000
+LOG_FILE = "/var/log/test-monitor/errors.log"
+
+log_path = Path(LOG_FILE)
+
+if log_path.exists() and log_path.stat().st_size > 0:
+    data = log_path.read_text()
+
+    with socket.create_connection((INFRA_SERVER, INFRA_PORT), timeout=10) as sock:
+        sock.sendall(data.encode("utf-8"))
+
+    print("Logs envoyés avec succès.")
+else:
+    print("Aucune erreur à envoyer.")
+
+
+```
+Puis se fait déployer avec Ansible une fois par jour comme ceci : 
+
+```nft
+- name: Deploy log sender
+  hosts: testservers
+  become: true
+
+  tasks:
+
+    - name: Copy Python log sender
+      ansible.builtin.copy:
+        src: send_logs.py
+        dest: /usr/local/bin/send_logs.py
+        mode: '0755'
+
+    - name: Create monitoring log directory
+      ansible.builtin.file:
+        path: /var/log/test-monitor
+        state: directory
+        mode: '0755'
+
+    - name: Create error log file
+      ansible.builtin.file:
+        path: /var/log/test-monitor/errors.log
+        state: touch
+        mode: '0644'
+      
+     - name: Send logs every day
+      ansible.builtin.cron:
+        name: "Send monitoring errors to infra server"
+        minute: "0"
+        hour: "23"
+        job: "/usr/bin/python3 /usr/local/bin/send_logs.py"
+```
+Du côté du serveur infra, il faut un petit service qui écoute sur le port TCP 5000 : 
+
+```nft
+import socket
+
+HOST = "0.0.0.0"
+PORT = 5000
+
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
+    server.bind((HOST, PORT))
+    server.listen()
+
+    print(f"Listening on TCP/{PORT}")
+
+    while True:
+        conn, addr = server.accept()
+
+        with conn:
+            data = conn.recv(65535)
+
+            if data:
+                with open("/var/log/testservers.log", "a") as log:
+                    log.write(data.decode("utf-8"))
+                    log.write("\n")
+```
 
 
 
