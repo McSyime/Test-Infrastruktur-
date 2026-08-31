@@ -1,5 +1,4 @@
-    # Mise en place d'une infrastructure de teste
-
+# Mise en place d'une infrastructure de teste
 ## Einleitung 
 
 Dans le cadre du projet demandé, Je souhaite élaborer un projet technique à mettre en place sur mon lieu de travail. Dans une première phase, ce projet consiste à la mise en place d'une infrastructure de teste avec des appareils comme des serveurs et des Switchs.
@@ -32,7 +31,7 @@ Nous distinguons 4 réseaux différents basés sur l'adresse privée 192.168.x.x
 
 ### Netzwerk 1
 
-Le réseau 192.168.10.1 accueillera les solutions de Monitoring. Il peut communiquer avec le Netzwerk 2 par le router central ainsi qu'avec le ou les PC admin qui sont sur le réseau 192.168.40.1 /24. 
+Le réseau 192.168.10.0 /24 accueillera les solutions de Monitoring. Il peut communiquer avec le Netzwerk 2 par le router central ainsi qu'avec le ou les PC admin qui sont sur le réseau 192.168.40.0 /24. 
 
 ### Netzwerk 2 
 
@@ -44,7 +43,7 @@ Le PC admin a accès à tous les réseaux et tous les appareils qui s'y trouvent
 
 ### Router 
 
-Le Router intègre évidemment les 4 réseaux dont nous avons besoin. Je souhaite limiter au maximum les échange entre le réseau 1 et 2 afin de ne laisser passer que ce que je veux traiter. Il en va de même pour la PDU. Afin de définir ces règles, je souhaite configurer une machine Linux disposant de deux ports LAN pour y connecter les Switch des réseaux 1 et 2. De cette manière, les deux réseaux sont séparées physiquement et je pourrai par exemple mettre en place des règles ACL à l'aide de nftables et des tables de routages.
+Le Router intègre évidemment les 4 réseaux dont nous avons besoin. Je souhaite limiter au maximum les échange entre le réseau 1 et 2 afin de ne laisser passer que ce que je veux traiter. Il en va de même pour la PDU. Afin de définir ces règles, je souhaite configurer une machine Linux disposant de 3 ports LAN pour y connecter les Switch des réseaux 1 et 2 ainsi que le PC admin. De cette manière, les deux réseaux sont séparées physiquement. Linux übernimmt das Routing zwischen den Netzwerken. Die Zugriffsbeschränkungen werden mit nftables umgesetzt.
 
 ## Définition des éléments à surveiller 
 
@@ -183,7 +182,7 @@ Pour la première phase qui consiste à la surveillance réseau et l'envoi de lo
 
 Ici, le script python qui doit tourner sur le serveur test : 
 
-```nft
+```python
 import socket
 from pathlib import Path
 
@@ -207,7 +206,7 @@ else:
 ```
 Puis se fait déployer avec Ansible une fois par jour comme ceci : 
 
-```nft
+```yaml
 - name: Deploy log sender
   hosts: testservers
   become: true
@@ -241,7 +240,7 @@ Puis se fait déployer avec Ansible une fois par jour comme ceci :
 ```
 Du côté du serveur infra, il faut un petit service qui écoute sur le port TCP 5000 : 
 
-```nft
+```python
 import socket
 
 HOST = "0.0.0.0"
@@ -268,7 +267,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
 Ainsi nous pouvons créer un script et le déployer sur les machines de teste. Nous pouvons bien évidemment développer d'autres automatisations sur d'autres ports. 
 
 Par exemple les logs des connexions réussies en ssh : 
-```nft
+```python
 import subprocess
 import socket
 import re
@@ -332,6 +331,10 @@ print("An den Infra-Server gesendete SSH-Verbindungen.")
 
 ```
 Ici nous utilisons le port 5001. Il nous faudra donc écouter sur le serveur infra pour enregistrer les logs. 
+
+### Evolutivité 
+
+Dans les descriptions données jusqu'ici, je me suis concentré sur l'aspect réseau afin de maitriser cette infrastructure de teste. Le but final serait de créer des scripts de contrôle de tous les équipements. Par exemple des testes des appareils HF (Hautes fréquences) Comme les récepteurs. Nous surveillons le spectre, mais les appareils qui le permettent ne sont pas surveillés activement et c'est un gros défaut à mon sens. Au niveau software nous pourrions également tester les programmes dont nous avons besoin et automatiser certaines mises à jour par exemple. Nous aurions un gain de temps et l'erreur humaine de répétition ne serait plus un facteur. En revanche nous pourrions nous concentrer sur les vérifications. 
 
 
 
