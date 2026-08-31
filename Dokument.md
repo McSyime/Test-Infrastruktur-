@@ -42,6 +42,80 @@ Le PC admin a accès à tous les réseaux et tous les appareils qui s'y trouvent
 
 Le Router intègre évidemment les 4 réseaux dont nous avons besoin. Je souhaite limiter au maximum les échange entre le réseau 1 et 2 afin de ne laisser passer que ce que je veux traiter. Il en va de même pour la PDU. Afin de définir ces règles, je souhaite configurer une machine Linux disposant de deux ports LAN pour y connecter les Switch des réseaux 1 et 2. De cette manière, les deux réseaux sont séparées physiquement et je pourrai par exemple mettre en place des règles ACL à l'aide de nftables et des tables de routages.
 
+## Définition des éléments à surveiller 
+
+Dans cette première phase, je souhaite Monitoré les serveurs de Teste ainsi que la PDU du réseau 2. Plus particulièrement, je souhaite Monitoré le trafic réseau entre le réseau 2 et le réseau 1. Le but de la première phase est de pouvoir analyser certains protocoles comme TCP afin de faire remonter d'éventuels erreurs. Ces erreurs doivent être analyser par le serveur Infrastructure se trouvant dans le réseau 1. 
+
+Je souhaite également Monitoré le Switch du réseau 2. Car si il meurt, les serveurs ne pourront pas communiquer avec le serveur infra. Pour se faire, ce Monitoring se fera par le serveur Infra du réseau 1. Sur ce principe, il est également possible d'effectuer cette surveillance sur le réseau 1 mais je ne souhaite pas le mettre en place pour le prototype. Pour le prototype, je vie également avec le fait de ne pas avoir de surveillance du router avec un équipement externe. Etant donné que le PC admin y est directement connecté, je pourrai manuellement analyser des pannes ou des erreurs.
+
+### Communications entre les équipements 
+
+Afin d'illustrer les communications entre les équipements et les différents réseau, voici un exemple concret d'une nftables :
+
+table inet filter {
+
+    chain forward {
+        type filter hook forward priority 0;
+        policy drop;
+
+        # Nur Antworten auf bereits erlaubte
+        # Verbindungen zulassen
+        ct state established,related accept
+
+
+        # ==========================
+        # INFRA -> TESTSERVERS
+        # ==========================
+
+        # SSH + Ansible
+        ip saddr 192.168.10.20 \
+           ip daddr 192.168.20.0/24 \
+           tcp dport 22 accept
+
+        # Ping für das Monitoring
+        ip saddr 192.168.10.20 \
+           ip daddr 192.168.20.0/24 \
+           icmp type echo-request accept
+
+
+        # ==========================
+        # TESTSERVERS -> INFRA
+        # ==========================
+
+        # Senden von Logs / Fehlermeldungen
+        ip saddr 192.168.20.0/24 \
+           ip daddr 192.168.10.20 \
+           tcp dport 5000 accept
+
+
+        # ==========================
+        # INFRA -> PDU
+        # ==========================
+
+        # Verfügbarkeitsprüfung
+        ip saddr 192.168.10.20 \
+           ip daddr 192.168.30.20 \
+           icmp type echo-request accept
+
+        # SNMP-Monitoring
+        ip saddr 192.168.10.20 \
+           ip daddr 192.168.30.20 \
+           udp dport 161 accept
+
+
+        # ==========================
+        # ADMIN
+        # ==========================
+
+        # SSH vom Admin-PC
+        ip saddr 192.168.40.100 \
+           tcp dport 22 accept
+    }
+}
+
+
+
+
 
 
 
