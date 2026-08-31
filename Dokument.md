@@ -22,6 +22,8 @@ Pour rester simple, j'attribue 3 objectifs dans ce projet qui permettront d'éva
 
 Dans le schéma suivant, J'illustre l'infrastructure hardware minimale pour pouvoir effectué le Monitoring et les automatisations. Etant donné que nous n'avons pas accès aux règles Firewall, je n'en utiliserai pas dans ce prototype car il n'est pour l'instant pas relevant pour le Monitoring et l'automatisation de nos besoins. 
 
+![Infrastruktur Schema](Infrastruktur_Schema.png)
+
 
 
 
