@@ -52,7 +52,8 @@ Je souhaite également Monitoré le Switch du réseau 2. Car si il meurt, les se
 
 Afin d'illustrer les communications entre les équipements et les différents réseau, voici un exemple concret d'une nftables :
 
-'table inet filter {
+```nft
+table inet filter {
 
     chain forward {
         type filter hook forward priority 0;
@@ -111,7 +112,8 @@ Afin d'illustrer les communications entre les équipements et les différents r�
         ip saddr 192.168.40.100 \
            tcp dport 22 accept
     }
-}'
+}
+```
 
 
 
