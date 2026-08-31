@@ -48,6 +48,21 @@ Dans cette première phase, je souhaite Monitoré les serveurs de Teste ainsi qu
 
 Je souhaite également Monitoré le Switch du réseau 2. Car si il meurt, les serveurs ne pourront pas communiquer avec le serveur infra. Pour se faire, ce Monitoring se fera par le serveur Infra du réseau 1. Sur ce principe, il est également possible d'effectuer cette surveillance sur le réseau 1 mais je ne souhaite pas le mettre en place pour le prototype. Pour le prototype, je vie également avec le fait de ne pas avoir de surveillance du router avec un équipement externe. Etant donné que le PC admin y est directement connecté, je pourrai manuellement analyser des pannes ou des erreurs.
 
+### Objectifs concrets 
+
+| Bereich | Ziel | Kommunikation / Technik | Erwartetes Verhalten |
+|---|---|---|---|
+| Internes Monitoring | Kommunikation zwischen den Testgeräten überwachen | ICMP / TCP | Erlaubte Verbindungen müssen funktionieren |
+| Testserver ↔ Testserver | Verbindung zwischen den Testservern prüfen | ICMP / definierte TCP-Ports | Verbindung erfolgreich |
+| Testserver → Switch | Erreichbarkeit des Switches prüfen | ICMP, optional SNMP | Switch muss erreichbar sein |
+| Testserver → PDU | Netzwerksegmentierung überprüfen | ICMP / TCP | Verbindung muss blockiert sein |
+| Fehlererfassung | Kommunikationsfehler lokal protokollieren | Python-Skript / Logs | Nur Fehler und Abweichungen werden gespeichert |
+| Log-Übertragung | Fehler einmal täglich an den Infrastrukturserver senden | TCP / definierter Log-Port | Nur vorhandene Fehler werden übertragen |
+| Externes Monitoring | Testnetzwerk vom Infrastrukturserver überwachen | ICMP / TCP / SNMP | Testserver und Switch müssen erreichbar sein |
+| SSH | Zugriff vom Infrastrukturserver auf die Testserver | TCP / 22 | SSH nur vom Infrastrukturserver erlaubt |
+| Automatisierung | Testserver zentral konfigurieren | Ansible über SSH | Playbooks werden vom Infrastrukturserver ausgeführt |
+| Standardregel | Nicht benötigte Kommunikation blockieren | nftables | Alles nicht explizit Erlaubte wird blockiert |
+
 ### Communications entre les équipements 
 
 Afin d'illustrer les communications entre les équipements et les différents réseau, voici un exemple concret d'une nftables :
@@ -125,6 +140,10 @@ En résumé, seuls les flux utiles sont autorisés et les ports et protocoles so
 | Logs / Fehlermeldungen | TCP / 5000 | Testserver | Infrastrukturserver | Übertragung von Logs und Fehlern |
 | Administration | TCP / 22 | Admin-PC | Netzwerkgeräte | Manuelle Konfiguration und Wartung |
 | Standardregel | Alle | Alle | Alle | Standardmässig blockiert |
+
+Pour démarrer le prototype, seuls des communications avec le protocole ssh seront utilisés. Pour les objectifs actuels, il n'y a pas encore besoin de GUI et pour le moment nous souhaitons resté à la base du Monitoring. 
+
+
 
 
 
