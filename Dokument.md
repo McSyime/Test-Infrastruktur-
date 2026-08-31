@@ -10,6 +10,10 @@ Ce besoin vient du fait, qu'au sein de mon équipe, nous manquons de connaissanc
 
 Il faut aussi prendre en compte que le BIT est là pour mettre en place des solutions définitives, mais ils ne sont malheureusement pas tout le temps à notre disposition pour résoudre nos problèmes et cela peut parfois prendre énormément de temps. Tellement de temps que certains projets finissent par être abandonnés. Avec cette initiative, nous pourrions étudier nos systèmes dans une infrastructure sécurisé sans risqué de compromettre la sécurité de notre réseau de travail et ainsi développer des solutions que nous pourrons proposer au BIT. 
 
+## Projektumfang 
+
+Pour ce travail, je vais me concentrer de faire en sorte que la phase de mise en service soit testable et réalisable (reproductible). Cela veut dire développer une infrastructure réseau qui se rapproche de la réalité afin de mettre en place des prototypes de Monitoring et d'automatisations qui pourront être déployé sur l'exploitation. Afin de ne pas divulguer d'informations confidentielles et techniques sur la situation de notre exploitation, je parlerai uniquement de protocoles simples et courants afin d'illustrer mes propos. 
+
 ## Objectifs 
 
 Pour rester simple, j'attribue 3 objectifs dans ce projet qui permettront d'évaluer mon idée : 
@@ -83,6 +87,13 @@ Voici les moyens permettant de tester ces objectifs :
 | Ansible-Automatisierung | Vom Infrastrukturserver ein einfaches Playbook ausführen | `ansible-playbook` | Die gewünschte Änderung wird automatisch auf dem Testserver durchgeführt |
 | Ansible-Ergebnis prüfen | Das Resultat direkt auf dem Testserver kontrollieren | `cat`, `ls`, `systemctl` usw. | Der Zustand des Testservers entspricht der Definition im Playbook |
 | Default-Deny mit nftables | Mehrere nicht vorgesehene Verbindungen testen | `ping`, `nc`, `ssh`, `curl` | Alle nicht explizit erlaubten Verbindungen werden blockiert |
+
+Das Projekt gilt als erfolgreich, wenn folgende Bedingungen erfüllt sind:
+
+- Nur die explizit erlaubten Kommunikationsverbindungen zwischen den verschiedenen Netzwerken funktionieren. Nicht erlaubte Verbindungen werden durch `nftables` blockiert.
+- Das lokale Monitoring auf den Testservern funktioniert und erkennt Fehler bei den definierten Kommunikationswegen.
+- Die Testserver übertragen einmal täglich die erkannten Fehler in Form von Logs an den Infrastrukturserver.
+- Kleine Ansible-Automatisierungen können vom Infrastrukturserver aus erfolgreich auf den Testservern ausgeführt werden.
 
 ### Communications entre les équipements 
 
@@ -163,6 +174,10 @@ En résumé, seuls les flux utiles sont autorisés et les ports et protocoles so
 | Standardregel | Alle | Alle | Alle | Standardmässig blockiert |
 
 In einer ersten Implementierungsphase wird SSH für die Administration und Automatisierung eingesetzt. Weitere Protokolle wie ICMP, SNMP und ein definierter TCP-Port für die Logübertragung werden schrittweise für das Monitoring und Automatisierung ergänzt.
+
+
+## Prototypes d'automatisations de l'infrastructure
+
 
 
 
