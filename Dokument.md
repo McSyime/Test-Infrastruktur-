@@ -331,6 +331,8 @@ with socket.create_connection(
 print("An den Infra-Server gesendete SSH-Verbindungen.")
 
 ```
+Ici nous utilisons le port 5001. Il nous faudra donc écouter sur le serveur infra pour enregistrer les logs. 
+
 
 
 
