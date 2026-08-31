@@ -63,6 +63,27 @@ Je souhaite également Monitoré le Switch du réseau 2. Car si il meurt, les se
 | Automatisierung | Testserver zentral konfigurieren | Ansible über SSH | Playbooks werden vom Infrastrukturserver ausgeführt |
 | Standardregel | Nicht benötigte Kommunikation blockieren | nftables | Alles nicht explizit Erlaubte wird blockiert |
 
+Voici les moyens permettant de tester ces objectifs : 
+
+| Ziel | Wie wird es getestet? | Mittel / Werkzeuge | Erwartetes Ergebnis |
+|---|---|---|---|
+| Testserver ↔ Testserver | Von Testserver 1 die Verbindung zu Testserver 2 prüfen | `ping`, `nc`, Python-`socket` | Der Zielserver ist über die erlaubten Verbindungen erreichbar |
+| Testserver → Switch | Regelmässig prüfen, ob der Switch erreichbar ist | `ping`, optional `snmpget` | Der Switch wird als erreichbar erkannt |
+| Testserver → PDU gesperrt | Von einem Testserver absichtlich versuchen, die PDU zu erreichen | `ping`, `nc`, `curl` je nach Dienst | Die Verbindung wird blockiert |
+| Interner Fehler erkannt | Testserver 2 ausschalten oder Netzwerkkabel trennen | Python-Monitoring-Skript | Testserver 1 erkennt den Fehler und erstellt einen Logeintrag |
+| Switch-Ausfall erkannt | Switch im Testnetz ausschalten oder trennen | `ping`, Python-Skript | Geräte hinter dem Switch werden als nicht erreichbar erkannt und der Ausfall wird protokolliert |
+| Nur Fehler protokollieren | Zuerst Normalbetrieb testen und danach absichtlich einen Fehler erzeugen | Python, Logdateien | Im Normalbetrieb wird kein Fehler gemeldet, nur Abweichungen werden gespeichert |
+| Tägliche Logübertragung | Einen Fehler erzeugen und anschliessend die tägliche Übertragung ausführen | `systemd timer`, `cron`, Python | Die gesammelten Fehler werden einmal täglich an den Infrastrukturserver übertragen |
+| Logempfang auf dem Infrastrukturserver | Nach einem bekannten Fehler die empfangenen Logs prüfen | Python, `journalctl`, Logdateien | Zeitpunkt, Gerät und Fehlertyp sind korrekt gespeichert |
+| Infrastrukturserver → Testserver Monitoring | Einen Testserver ausschalten | `ping`, TCP-Prüfung, Python | Der Infrastrukturserver erkennt den Ausfall |
+| Infrastrukturserver → Switch Monitoring | Den Switch ausschalten | ICMP, SNMP | Der Infrastrukturserver erkennt, dass der Switch nicht erreichbar ist |
+| TCP-Dienst Monitoring | Einen überwachten Dienst auf einem Testserver stoppen | `nc`, Python-`socket`, `systemctl stop` | Der Infrastrukturserver erkennt, dass der Dienst bzw. Port nicht mehr erreichbar ist |
+| SSH Infra → Testserver | Vom Infrastrukturserver eine SSH-Verbindung zum Testserver aufbauen | `ssh` | Die Verbindung ist erfolgreich |
+| Nicht erlaubtes SSH | Von einem nicht autorisierten Gerät SSH zum Testserver versuchen | `ssh` | Die Verbindung wird durch `nftables` blockiert |
+| Ansible-Automatisierung | Vom Infrastrukturserver ein einfaches Playbook ausführen | `ansible-playbook` | Die gewünschte Änderung wird automatisch auf dem Testserver durchgeführt |
+| Ansible-Ergebnis prüfen | Das Resultat direkt auf dem Testserver kontrollieren | `cat`, `ls`, `systemctl` usw. | Der Zustand des Testservers entspricht der Definition im Playbook |
+| Default-Deny mit nftables | Mehrere nicht vorgesehene Verbindungen testen | `ping`, `nc`, `ssh`, `curl` | Alle nicht explizit erlaubten Verbindungen werden blockiert |
+
 ### Communications entre les équipements 
 
 Afin d'illustrer les communications entre les équipements et les différents réseau, voici un exemple concret d'une nftables :
