@@ -24,6 +24,28 @@ Dans le schéma suivant, J'illustre l'infrastructure hardware minimale pour pouv
 
 ![Infrastruktur Schema](Infrastruktur_Schema.png)
 
+Nous distinguons 4 réseaux différents basés sur l'adresse privée 192.168.x.x / 24. 
+
+### Netzwerk 1
+
+Le réseau 192.168.10.1 accueillera les solutions de Monitoring. Il peut communiquer avec le Netzwerk 2 par le router central ainsi qu'avec le ou les PC admin qui sont sur le réseau 192.168.40.1 /24. 
+
+### Netzwerk 2 
+
+Sur la même base que le réseau 1, il y a un Switch et deux serveurs de testes. Les serveurs de tests peuvent communiquer avec la passerelle ainsi que les PC admins. Cela est nécessaire pour l'automatisation ou l'envoi de logs au serveur Infra pour qu'il puisse faire ce qu'on va lui demander. Il y a également une PDU (Power Distribution Unit) qui n'est pas sur le même réseau que les deux serveurs de testes. Cela a été fait ainsi car dans notre exploitation, les deux types d'équipements ne sont pas sur le même réseau. Cette PDU a été intégrée au projet car il y a également des possibilités de Monitoring et d'automatisation pertinente. A noter que cela implique une configuration de port sur le Switch du réseau 2. LA PDU doit être atteignable uniquement depuis le réseau 1. 
+
+### PC Admin 
+
+Le PC admin a accès à tous les réseaux et tous les appareils qui s'y trouvent afin de pouvoir effectuer les configurations nécessaires. 
+
+### Router 
+
+Le Router intègre évidemment les 4 réseaux dont nous avons besoin. Je souhaite limiter au maximum les échange entre le réseau 1 et 2 afin de ne laisser passer que ce que je veux traiter. Il en va de même pour la PDU. Afin de définir ces règles, je souhaite configurer une machine Linux disposant de deux ports LAN pour y connecter les Switch des réseaux 1 et 2. De cette manière, les deux réseaux sont séparées physiquement et je pourrai par exemple mettre en place des règles ACL à l'aide de nftables et des tables de routages.
+
+
+
+
+
 
 
 
