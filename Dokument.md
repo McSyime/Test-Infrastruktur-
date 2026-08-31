@@ -265,9 +265,72 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
                     log.write("\n")
 ```
 
+Ainsi nous pouvons créer un script et le déployer sur les machines de teste. Nous pouvons bien évidemment développer d'autres automatisations sur d'autres ports. 
 
+Par exemple les logs des connexions réussies en ssh : 
+```nft
+import subprocess
+import socket
+import re
+from datetime import datetime
 
+INFRA_SERVER = "192.168.10.20"
+INFRA_PORT = 5001
 
+# Ruft die erfolgreichen SSH-Verbindungen der letzten 24 Stunden ab
+cmd = [
+    "journalctl",
+    "-u", "ssh",
+    "--since", "24 hours ago",
+    "--no-pager"
+]
+
+result = subprocess.run(
+    cmd,
+    capture_output=True,
+    text=True
+)
+
+logs = result.stdout.splitlines()
+
+pattern = re.compile(
+    r"Accepted \S+ for (\S+) from ([0-9a-fA-F\.:]+) port (\d+)"
+)
+
+ssh_connections = []
+
+for line in logs:
+    match = pattern.search(line)
+
+    if match:
+        user = match.group(1)
+        source_ip = match.group(2)
+        source_port = match.group(3)
+
+        ssh_connections.append(
+            f"{line}\n"
+            f"User: {user}\n"
+            f"Source IP: {source_ip}\n"
+            f"Source Port: {source_port}\n"
+            f"-----------------------------"
+        )
+
+if not ssh_connections:
+    print("Aucune connexion SSH trouvée.")
+    exit()
+
+message = "\n".join(ssh_connections)
+
+with socket.create_connection(
+    (INFRA_SERVER, INFRA_PORT),
+    timeout=10
+) as sock:
+
+    sock.sendall(message.encode("utf-8"))
+
+print("An den Infra-Server gesendete SSH-Verbindungen.")
+
+```
 
 
 
